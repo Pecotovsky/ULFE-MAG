@@ -3,6 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Pocisti "Workspace" in "Command Window"
+clear all;
 close all;
 clc;
 
@@ -48,6 +49,25 @@ disp('RGB kanali "Holywood": ');
 disp(Video_RGB);
 
 
+% Graficni prikaz rezultatov
+figure;
+
+subplot(2, 2, 1);
+imshow(uint8(Slika1));
+
+subplot(2, 2, 2);
+imshow(uint8(Slika2));
+
+subplot(2, 2, 3:4);
+while hasFrame(Video)
+    frame = readFrame(Video);
+    imshow(uint8(frame));
+    pause(1 / (10 * Video.FrameRate));
+end
+
+close all;
+
+
 
 %% 1.1. - Pretvorba v sivinski prostor
 
@@ -67,17 +87,16 @@ imwrite(Slika2_Siva, "Baboon_Siva.tiff");
 
 % Pretvorba iz RGB v sivinski prostor - "Holywood"
 Video_frames = read(Video);
-Video_Siv = 0.299 * Video_frames(:,:,1,:) + 0.587 * Video_frames(:,:,2,:) + 0.114 * Video_frames(:,:,3,:);
+Video_Siv_frame = 0.299 * Video_frames(:,:,1,:) + 0.587 * Video_frames(:,:,2,:) + 0.114 * Video_frames(:,:,3,:);
 
-Video_Siv_temp = VideoWriter("Holywood_Siv.avi");
-open(Video_Siv_temp);
-writeVideo(Video_Siv_temp, Video_Siv);
-close(Video_Siv_temp);
+Video_Siv = VideoWriter("Holywood_Siv.avi", "Grayscale AVI");
+open(Video_Siv);
+writeVideo(Video_Siv, Video_Siv_frame);
+close(Video_Siv);
 
 
 % Graficni prikaz rezultatov
-Video_Siv = VideoReader('Holywood_Siv.avi');
-
+Video_Siv = VideoReader("Holywood_Siv.avi");
 figure;
 
 subplot(2, 2, 1);
@@ -90,63 +109,89 @@ subplot(2, 2, 3:4);
 while hasFrame(Video_Siv)
     frame = readFrame(Video_Siv);
     imshow(uint8(frame));
-    pause(1 / Video_Siv.FrameRate);
+    pause(1 / (10 * Video_Siv.FrameRate));
 end
+
+close all;
 
 
 
 %% 1.2 - Pretvorba nazaj v RGB prostor
 
 % Funkcija za pretvorbo vrednostni barvnih kanalov pikslov
-function Slika_RGB = pretvorba(Sivo)
-    zelena = [153, 255, 102];
-    oranzna = [255, 153, 51];
-    rdeca = [255, 80, 80];
+function RGB = pretvorba(Sivo)
+    zelena = [153, 255, 102];  
+    oranzna = [255, 153, 51];  
+    rdeca = [255, 80, 80];     
 
-    Slika_Visina = height(Sivo);
-    Slika_Sirina = width(Sivo);
+    Slika_Visina = size(Sivo, 1);  
+    Slika_Sirina = size(Sivo, 2);  
 
-    Slika_RGB = zeros(Slika_Visina, Slika_Sirina, 3);
+    RGB = zeros(Slika_Visina, Slika_Sirina, 3, 'uint8');
 
-    for i = Slika_Visina
-        for j = Slika_Sirina
+    for i = 1:Slika_Visina
+        for j = 1:Slika_Sirina
             if Sivo(i, j) <= 100
-                Slika_RGB(i, j, 1) = uint8(zelena(1));
-                Slika_RGB(i, j, 2) = uint8(zelena(2));
-                Slika_RGB(i, j, 3) = uint8(zelena(3));
+                RGB(i, j, 1) = zelena(1);
+                RGB(i, j, 2) = zelena(2);
+                RGB(i, j, 3) = zelena(3);
 
-            elseif (100 < Sivo(i, j)) && (Sivo(i, j) <= 200)
-                Slika_RGB(i, j, 1) = uint8(oranzna(1));
-                Slika_RGB(i, j, 2) = uint8(oranzna(1));
-                Slika_RGB(i, j, 3) = uint8(oranzna(1));
+            elseif (Sivo(i, j) > 100) && (Sivo(i, j) <= 200)
+                RGB(i, j, 1) = oranzna(1);
+                RGB(i, j, 2) = oranzna(2);
+                RGB(i, j, 3) = oranzna(3);
 
             elseif Sivo(i, j) > 200
-                Slika_RGB(i, j, 1) = uint8(rdeca(1));
-                Slika_RGB(i, j, 2) = uint8(rdeca(2));
-                Slika_RGB(i, j, 3) = uint8(rdeca(3));
+                RGB(i, j, 1) = rdeca(1);
+                RGB(i, j, 2) = rdeca(2);
+                RGB(i, j, 3) = rdeca(3);
             end
         end
-    end 
-
+    end
 end
-
 
 % Pretvorba iz sivinskega v RGB prostor - "Lena"
 Slika1_RGB = pretvorba(Slika1_Siva);
-repmat(Slika1_RGB, 1);
 imwrite(Slika1_RGB, "Lena_RGB.tiff");
 
 
-% Pretvorba iz sivinskega v RGB prostor - "Baboon"
+%Pretvorba iz sivinskega v RGB prostor - "Baboon"
 Slika2_RGB = pretvorba(Slika2_Siva);
-imwrite(Slika1_RGB, "Baboon_RGB.tiff");
+imwrite(Slika2_RGB, "Baboon_RGB.tiff");
 
 
 % Pretvorba iz sivinskega v RGB prostor - "Holywood"
-Video_Siv_frames = read(Video_Siv);
+Video_RGB = VideoWriter("Holywood_RGB.avi", "Uncompressed AVI");
+open(Video_RGB);
 
-%for i = 
- %   for j = 
-  %      
-   % end
-%end
+% Zakaj se Video_Siv ne prebere v funkciji pravilno, ce se video ne
+% reinicializira!??!?!?!
+Video_Siv = VideoReader("Holywood_Siv.avi");
+
+while hasFrame(Video_Siv)
+    frame_siv = readFrame(Video_Siv);
+    frame_RGB = pretvorba(frame_siv);
+    writeVideo(Video_RGB, frame_RGB);
+end
+
+close(Video_RGB);
+
+
+% Graficni prikaz rezultatov
+Video_RGB = VideoReader("Holywood_RGB.avi");
+figure;
+
+subplot(2, 2, 1);
+imshow(uint8(Slika1_RGB));
+
+subplot(2, 2, 2);
+imshow(uint8(Slika2_RGB));
+
+subplot(2, 2, 3:4);
+while hasFrame(Video_RGB)
+    frame = readFrame(Video_RGB);
+    imshow(uint8(frame));
+    pause(1 / (10 * Video_RGB.FrameRate));
+end
+
+close all;
