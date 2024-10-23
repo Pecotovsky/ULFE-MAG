@@ -1,0 +1,29 @@
+import cv2
+
+# Open the camera at the ID 0 
+capture = cv2.VideoCapture(0)
+
+# Check if camera is activated
+if not (capture.isOpened()):
+    print("Error: Could not access the camera")
+
+# Set resolution of video frames
+capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+print("Press any key to exit...")
+
+while(True):
+    # Read current frame
+    ret, frame = capture.read() # ret is a bool equal to True, when frame is read correctly
+
+    # Display current camera frame
+    cv2.imshow("Camera is live :)",frame)
+
+    # Exit the loop when user presses any key
+    if cv2.waitKey(1) != -1:
+        break
+
+# Release the camera and close all active windows before exiting the program
+capture.release()
+cv2.destroyAllWindows()
